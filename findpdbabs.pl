@@ -59,7 +59,7 @@ use lib $FindBin::Bin;
 use strict;
 use config;
 
-my $configFile = 'buildseqdb.conf';
+my $configFile = 'findpdbabs.conf';
 
 #*************************************************************************
 my %config = config::ReadConfig($configFile);
@@ -103,11 +103,13 @@ sub FindAbs
     my %chainTypes = ();
     my %positives  = ();
     my @blastFiles = GetFileList($blastDir, '.out');
+    
     foreach my $blastFile (@blastFiles)
     {
-#        print "$blastFile\n";
+        print STDERR "Parsing $blastFile...";
         ParseBlast($blastFile, \%lengths, \%evalues, \%ids,
                    \%positives, \%chainTypes);
+        print STDERR "done\n";
     }
     
     OutputAbs(\%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
@@ -121,7 +123,7 @@ sub OutputAbs
 #    foreach my $label (reverse sort {$$hIds{$a} <=> $$hIds{$b}} @labels)
     foreach my $label (reverse sort {$$hPositives{$a} <=> $$hPositives{$b}} @labels)
     {
-        printf("$label: ChainType: $$hChainTypes{$label} E: %.2g ID: %.2f Pos: %.2f Len: %3d\n",
+        printf("$label: ChainType: $$hChainTypes{$label} E: %6.2g ID: %.2f Pos: %.2f Len: %3d\n",
             $$hEvalues{$label}, $$hIds{$label}, $$hPositives{$label}, $$hLengths{$label});
     }
 }
@@ -227,8 +229,10 @@ sub RunBlast
         {
             foreach my $tplFile (@tplFiles)
             {
+                print STDERR "Running BLAST with template ${tplFile}...";
                 my $exe = "blastall -F F -e $::maxEValue -z 100000 -P 1 -b $nSeqs -p blastp -a $::np -d $seqFile -i $tplDir/$tplFile -o ${tmpDir}/${tplFile}.out";
                 `$exe`;
+                print STDERR "done\n";
             }
             return($tmpDir);
         }
