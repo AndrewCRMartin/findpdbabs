@@ -27,9 +27,15 @@ the sequence files for any PDB files that don't have them
 
 2. Build a set of non-redundant sequences from the known antibodies
 for use as BLAST search sequences for searching against the (full set
-of) PDB files. This is done by `(cd maketemplates; getallabseqs.pl)`
+of) PDB files. This is done by `(cd maketemplates; ./getallabseqs.pl)`
 
-3. Now run the program to identify new PDB sequence files and identify
+3. Build a FASTA file of non-redundant TCR sequences:
+`(cd maketemplates; ./getalltcrseqs.pl)`
+
+4. Combine these with the antibody sequences:
+`cat maketemplates/tcrseqs.faa templates/*.faa >tcrabs.faa`
+
+5. Now run the program to identify new PDB sequence files and identify
 them as containing an antibody: `./findpdbabs.pl`
 
 The algorithm is to identify PDB sequences that haven't previously

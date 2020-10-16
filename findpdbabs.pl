@@ -114,8 +114,15 @@ sub FindAbs
     }
 
     my @labels = keys %lengths;
-#    ReverseSearch
+    @labels = ReverseSearch(@labels);
     OutputAbs(\@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
+}
+
+sub ReverseSearch
+{
+    my(@labels) = @_;
+
+    return(@labels);   # TODO: Needs to be @newlabels
 }
 
 sub OutputAbs

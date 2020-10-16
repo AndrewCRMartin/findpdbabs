@@ -6,33 +6,33 @@ my $allseq="allabs.faa";
 my $repseq="cdhit.faa";
 my $tplDir="../templates";
 
-## unlink $allseq;
-## 
-## my @pdbfiles = GetFileList($abdir, '.pdb');
-## print STDERR "Concatenating files";
-## foreach my $file (@pdbfiles)
-## {
-##     my $pdbcode = $file;
-##     $pdbcode =~ s/.*\///;
-##     $pdbcode =~ s/\..*?$//;
-##     `pdbgetchain L,H ${abdir}/$file | pdb2pir -c -f -l ${pdbcode}_ >>$allseq`;
-##     print STDERR '.';
-## }
-## 
-## print "done\n";
-## 
-## # Grab and compile CD-HIT if not there
-## if( ! -d cdhit)
-## {
-##     print STDERR "Building cd-hit\n";
-##     `git clone git\@github.com:weizhongli/cdhit.git`;
-##     `(cd cdhit; make)`;
-##     print STDERR "done\n";
-## }
-## 
-## print STDERR "Running CD-HIT...";
-## `cdhit/cd-hit -c 0.6 -n 3 -i $allseq -o $repseq`;
-## print STDERR "done\n";
+unlink $allseq;
+
+my @pdbfiles = GetFileList($abdir, '.pdb');
+print STDERR "Concatenating files";
+foreach my $file (@pdbfiles)
+{
+    my $pdbcode = $file;
+    $pdbcode =~ s/.*\///;
+    $pdbcode =~ s/\..*?$//;
+    `pdbgetchain L,H ${abdir}/$file | pdb2pir -c -f -l ${pdbcode}_ >>$allseq`;
+    print STDERR '.';
+}
+
+print "done\n";
+
+# Grab and compile CD-HIT if not there
+if( ! -d "cdhit" )
+{
+    print STDERR "Building cd-hit\n";
+    `git clone git\@github.com:weizhongli/cdhit.git`;
+    `(cd cdhit; make)`;
+    print STDERR "done\n";
+}
+
+print STDERR "Running CD-HIT...";
+`cdhit/cd-hit -c 0.6 -n 3 -i $allseq -o $repseq`;
+print STDERR "done\n";
 
 SplitFastaFiles($repseq, $tplDir);
 
