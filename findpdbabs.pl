@@ -86,6 +86,7 @@ if($nSeqs > 0)
         exit 1;
     }
     my @abs = FindAbs($tmpDir);
+    unlink $tmpDir;
 }
 else
 {
@@ -111,17 +112,18 @@ sub FindAbs
                    \%positives, \%chainTypes);
         print STDERR "done\n";
     }
-    
-    OutputAbs(\%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
+
+    my @labels = keys %lengths;
+#    ReverseSearch
+    OutputAbs(\@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
 }
 
 sub OutputAbs
 {
-    my($hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
+    my($aLabels, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
 
-    my @labels = keys %$hLengths;
-#    foreach my $label (reverse sort {$$hIds{$a} <=> $$hIds{$b}} @labels)
-    foreach my $label (reverse sort {$$hPositives{$a} <=> $$hPositives{$b}} @labels)
+#    foreach my $label (reverse sort {$$hIds{$a} <=> $$hIds{$b}} @$aLabels)
+    foreach my $label (reverse sort {$$hPositives{$a} <=> $$hPositives{$b}} @$aLabels)
     {
         printf("$label: ChainType: $$hChainTypes{$label} E: %6.2g ID: %.2f Pos: %.2f Len: %3d\n",
             $$hEvalues{$label}, $$hIds{$label}, $$hPositives{$label}, $$hLengths{$label});
@@ -220,7 +222,8 @@ sub RunBlast
 {
     my($tplDir, $seqFile, $nSeqs) = @_;
 
-    my $tmpDir = "./";
+    my $tmpDir = "/var/tmp/fpa_$$" . "_" . time();
+    `mkdir $tmpDir` if(! -d $tmpDir);
     
     if(BuildBlastDB($seqFile))
     {
