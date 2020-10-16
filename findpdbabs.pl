@@ -246,17 +246,17 @@ sub RunBlast
 sub BuildBlastDB
 {
     my ($seqFile) = @_;
-    print "Building BLASt database..." if(defined($::v));
+    print STDERR "Building BLAST database..." if(defined($::v));
 
     my $exe = "formatdb -i $seqFile -p T -o F";
     `$exe`;
 
     if( -f "${seqFile}.pin" )
     {
-        print "done\n" if(defined($::v));
+        print STDERR "done\n" if(defined($::v));
         return(1);
     }
-    print "failed\n" if(defined($::v));
+    print STDERR "failed\n" if(defined($::v));
     return(0);
 }
 
@@ -267,6 +267,8 @@ sub BuildSequenceFile
     dbmopen %processed, $dbmFile, 0666 || die "Can't dbopen $dbmFile";
 
     my $nSeqs = 0;
+
+    print STDERR "Finding new sequence files";
     
     my @fastaFiles = GetFileList($faaDir, '.faa');
     if(scalar(@fastaFiles))
@@ -284,28 +286,29 @@ sub BuildSequenceFile
                         $processed{$file} = 1;
                         if(defined($::v))
                         {
-                            print "Added $file\n"
+                            print STDERR "Added $file\n"
                         }
                         else
                         {
-                            print ".";
+                            print STDERR '.';
                         }
                     }
                     else
                     {
-                        print "\nWarning: No sequences added from $file\n";
+                        print STDERR "\nWarning: No sequences added from $file\n";
                     }
                 }
             }
             close($seqFp);
+            print STDERR "done\n";
             
             if($nSeqs)
             {
-                print "\nAdded $nSeqs new sequences\n";
+                print STDERR "\nAdded $nSeqs new sequences\n";
             }
             else
             {
-                print "No new sequence files\n";
+                print STDERR "No new sequence files\n";
             }
         }
         else
@@ -317,7 +320,7 @@ sub BuildSequenceFile
     }
     else
     {
-        print "No sequence files found\n";
+        print STDERR "No sequence files found\n";
     }
     
     dbmclose %processed;
