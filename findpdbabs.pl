@@ -86,7 +86,8 @@ if($nSeqs > 0)
         exit 1;
     }
     my @abs = FindAbs($tmpDir);
-    unlink $tmpDir;
+    print "BLAST output is in $tmpDir\n";
+#    unlink $tmpDir;
 }
 else
 {
@@ -108,7 +109,7 @@ sub FindAbs
     foreach my $blastFile (@blastFiles)
     {
         print STDERR "Parsing $blastFile...";
-        ParseBlast($blastFile, \%lengths, \%evalues, \%ids,
+        ParseBlast("$blastDir/$blastFile", \%lengths, \%evalues, \%ids,
                    \%positives, \%chainTypes);
         print STDERR "done\n";
     }
@@ -184,6 +185,10 @@ sub ParseBlast
             }
         }
         close $fp;
+    }
+    else
+    {
+        print STDERR "Error: Unable to read $blastFile\n";
     }
 }
 
