@@ -86,8 +86,8 @@ if($nSeqs > 0)
         exit 1;
     }
     my @abs = FindAbs($tmpDir);
-    print "BLAST output is in $tmpDir\n";
-#    unlink $tmpDir;
+#    print "BLAST output is in $tmpDir\n";
+    unlink $tmpDir;
 }
 else
 {
@@ -130,8 +130,8 @@ sub OutputAbs
 {
     my($aLabels, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
 
-#    foreach my $label (reverse sort {$$hIds{$a} <=> $$hIds{$b}} @$aLabels)
-    foreach my $label (reverse sort {$$hPositives{$a} <=> $$hPositives{$b}} @$aLabels)
+#    foreach my $label (reverse sort {$$hIds{$a}*1.0 <=> $$hIds{$b}*1.0} @$aLabels)
+    foreach my $label (reverse sort {$$hPositives{$a}*1.0 <=> $$hPositives{$b}*1.0} @$aLabels)
     {
         printf("$label: ChainType: $$hChainTypes{$label} E: %6.2g ID: %.2f Pos: %.2f Len: %3d\n",
             $$hEvalues{$label}, $$hIds{$label}, $$hPositives{$label}, $$hLengths{$label});
