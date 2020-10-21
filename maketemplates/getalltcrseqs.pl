@@ -46,21 +46,33 @@ sub CheckFiles
 {
     my($pdbdir, @pdbfiles) = @_;
     my @newfiles = ();
-    print STDERR "Checking for files with exactly 2 chains";
+    print STDERR "Checking for files with exactly 2 full-length chains";
     foreach my $pdbfile (@pdbfiles)
     {
         my $filename = "$pdbdir/$pdbfile";
         if( -e $filename)
         {
             print STDERR '.';
-            my $exe = "$::pdbcount $filename";
+            my $exe = "$::pdbcount -c $filename";
             chomp $exe;
             my $result = `$exe`;
-            my @fields = split(/\s+/, $result);
-            if(($fields[1] == 2) && ($fields[3] > 200))
+            my @lines = split(/\n/, $result);
+            my $ok = 1;
+            if(scalar(@lines) == 3)  # we have 2 chains plus totals line
             {
-                push @newfiles, $pdbfile;
-                print "$pdbfile\n" if(defined($::v));
+                for(my $lineCount=0; $lineCount<2; $lineCount++)
+                {
+                    my @fields = split(/\s+/, $lines[$lineCount]);
+                    if($fields[3] < 100)
+                    {
+                        $ok = 0;
+                    }
+                }
+                if($ok)
+                {
+                    push @newfiles, $pdbfile;
+                    print "$pdbfile\n" if(defined($::v));
+                }
             }
         }
     }
