@@ -70,11 +70,12 @@ $::minId     = 0.3;
 $::maxEValue = 0.01;
 $|=1;
 
-my $faaDir    = $config{'faadir'};
-my $dbmFile   = $config{'dbmfile'};
-my $seqFile   = $config{'seqfile'};
-my $tplDir    = $config{'tpldir'};
-my %processed = ();
+my $faaDir     = $config{'faadir'};
+my $dbmFile    = $config{'dbmfile'};
+my $seqFile    = $config{'seqfile'};
+my $tplDir     = $config{'tpldir'};
+my $tcrAbsFile = $config{'tcrabsfile'};
+my %processed  = ();
 
 my $nSeqs = BuildSequenceFile($faaDir, $dbmFile, $seqFile);
 if($nSeqs > 0)
@@ -85,7 +86,7 @@ if($nSeqs > 0)
         print STDERR "Error: BLAST failed\n";
         exit 1;
     }
-    my @abs = FindAbs($tmpDir);
+    my @abs = FindAbs($tmpDir, $seqFile, $tcrAbsFile);
 #    print "BLAST output is in $tmpDir\n";
     unlink $tmpDir;
 }
@@ -97,7 +98,7 @@ else
 #*************************************************************************
 sub FindAbs
 {
-    my($blastDir)  = @_;
+    my($blastDir, $seqFile, $tcrAbsFile)  = @_;
 
     my %lengths    = ();
     my %evalues    = ();
@@ -115,17 +116,141 @@ sub FindAbs
     }
 
     my @labels = keys %lengths;
-    @labels = ReverseSearch(@labels);
+    @labels = ReverseSearch($tcrAbsFile, $seqFile, @labels);
     OutputAbs(\@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
 }
 
+#*************************************************************************
 sub ReverseSearch
 {
-    my(@labels) = @_;
+    my($tcrAbsFile, $seqFile, @labels) = @_;
 
-    return(@labels);   # TODO: Needs to be @newlabels
+    my @newlabels = ();
+    if(BuildBlastDB($tcrAbsFile))
+    {
+        foreach my $label (@labels)
+        {
+            if(BlastCheck($label, $seqFile, $tcrAbsFile))
+            {
+                push @newlabels, $label;
+            }
+            else
+            {
+                print STDERR "Rejected TCR: $label\n";
+            }
+        }
+    }
+
+    return(@newlabels);
 }
 
+#*************************************************************************
+sub BlastCheck
+{
+    my($label, $seqFile, $tcrAbsFile) = @_;
+    my $isAntibody = 0;
+
+    print STDERR "Reverse BLAST for label ${label}...";
+    my $testFile = GetSequence($seqFile, $label);
+    if($testFile ne '')
+    {
+        my $outFile = $testFile . $label . ".out";
+        my $exe = "blastall -F F -e $::maxEValue -z 100000 -P 1 -p blastp -a $::np -d $tcrAbsFile -i $testFile -o $outFile";
+        `$exe`;
+        unlink($testFile);
+        $isAntibody = CheckAntibody($outFile);
+#        unlink($outFile);
+    }
+    print STDERR "done\n";
+    
+    return($isAntibody);
+}
+
+#*************************************************************************
+sub CheckAntibody
+{
+    my($blastFile) = @_;
+    my $retval = 0;
+    if(open(my $fp, '<', $blastFile))
+    {
+        my $inData = 0;
+        while(<$fp>)
+        {
+            if(/^Sequences producing/)
+            {
+                $_ = <$fp>;  # Get blank line
+                $_ = <$fp>;  # Get first hit
+                if(/^tcr/)
+                {
+                    $retval = 0; # It's a TCR
+                }
+                elsif(/^[0-9]/)
+                {
+                    $retval = 1; # It's a PDB identifier (i.e. and antibody)
+                }
+                elsif(/No hits/)
+                {
+                    $retval = 0; # It's not found so not an antibody
+                }
+                else
+                {
+                    $retval = 0; # We don't know what it is!
+                }
+                last;
+            }
+        }
+        close($fp);
+    }
+    return($retval);
+}
+
+#*************************************************************************
+sub GetSequence
+{
+    my($seqFile, $label) = @_;
+    my $tmpFile = '';
+    
+    if(open(my $fp, '<', $seqFile))
+    {
+        my $inData = 0;
+        my $result = '';
+        while(<$fp>)
+        {
+            if(/^\>$label/)
+            {
+                $result .= $_;
+                $inData = 1;
+            }
+            elsif(/^\>/)
+            {
+                last if($inData);
+                $inData = 0;
+            }
+            elsif($inData)
+            {
+                $result .= $_;
+            }
+        }
+        close($fp);
+
+        if(length($result))
+        {
+            $tmpFile = "/var/tmp/fpatest_$$" . "__" . time();
+            if(open(my $out, '>', $tmpFile))
+            {
+                print $out $result;
+                close $out;
+            }
+            else
+            {
+                $tmpFile = '';
+            }
+        }
+    }
+    return($tmpFile);
+}
+
+#*************************************************************************
 sub OutputAbs
 {
     my($aLabels, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
@@ -138,6 +263,7 @@ sub OutputAbs
     }
 }
 
+#*************************************************************************
 sub ParseBlast
 {
     my($blastFile, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
@@ -240,6 +366,11 @@ sub RunBlast
     if(BuildBlastDB($seqFile))
     {
         my @tplFiles = GetFileList($tplDir, '.faa');
+        if(defined($::d) && ($::d > 1))
+        {
+            $#tplFiles = 2;
+        }
+        
         if(scalar(@tplFiles))
         {
             foreach my $tplFile (@tplFiles)
@@ -286,6 +417,12 @@ sub BuildSequenceFile
     print STDERR "Finding new sequence files";
     
     my @fastaFiles = GetFileList($faaDir, '.faa');
+
+    if(defined($::d))
+    {
+        $#fastaFiles = 1000;
+    }
+    
     if(scalar(@fastaFiles))
     {
         if(open(my $seqFp, '>', $seqFile))
