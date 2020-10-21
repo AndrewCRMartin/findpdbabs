@@ -1,5 +1,5 @@
 pdbdir=/serv/data/pdb
-faaoutdir=/serv/data/pdbseq
+faadir=/serv/data/pdbseq
 
 # Get rid of all built-in SUFFIX rules
 .SUFFIXES : 
@@ -14,7 +14,7 @@ faaoutdir=/serv/data/pdbseq
 
 # Source and destination directories
 vpath %.ent $(pdbdir)
-vpath %.faa $(faaoutdir)
+vpath %.faa $(faadir)
 
 # Get a directory listing of all PDB files
 sources := $(wildcard $(pdbdir)/*.ent)
@@ -31,5 +31,5 @@ all : faa
 faa : $(faatargets)
 
 %.faa : %.ent
-	(cd $(faaoutdir); pdb2pir -s -c -f $< > $@)
+	(cd $(faadir); pdb2pir -s -c -f $< > $@)
 
