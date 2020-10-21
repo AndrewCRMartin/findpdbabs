@@ -20,13 +20,14 @@ if( ! -d "cdhit" )
     print STDERR "done\n";
 }
 
+RelabelTCRs($tmpseq, $allseq);
+
 print STDERR "Running CD-HIT...";
-`cdhit/cd-hit -c 0.6 -n 3 -i $allseq -o $tmpseq`;
+`cdhit/cd-hit -T 0 -c 0.6 -n 3 -i $tmpseq -o $repseq`;
 print STDERR "done\n";
 
-RelabelTCRs($repseq, $tmpseq);
 unlink $tmpseq;
-unlink "${tmpseq}.clstr";
+unlink "${repseq}.clstr";
 
 sub RelabelTCRs
 {
@@ -47,8 +48,8 @@ sub RelabelTCRs
                     {
                         PrintFaa($out, $header, $sequence, 80);
                     }
-                    s/\s.*//;                        # Remove from first space
-                    $header = ">tcr" . substr($_,1); # Put tcr on the start
+
+                    $header = FixHeader($_);
                     $sequence = '';
                 }
                 else
@@ -65,6 +66,22 @@ sub RelabelTCRs
         }
         close $in;
     }
+}
+
+sub FixHeader
+{
+    my($header) = @_;
+    $header = substr($header,1);
+    $header =~ s/\s.*//;    # Remove from first space
+    $header =~ s/\|\|/\|/g; # Replace || with |
+    $header =~ s/^pdb\|//;  # Remove pdb|
+    $header =~ s/^sp\|//;   # Remove sp|
+    $header =~ s/^pir\|//;  # Remove pir|
+    $header =~ s/^prf\|//;  # Remove prf|
+    $header =~ s/\|/_/g;    # Replace | with _
+    
+    $header = ">tcr${header}"; # Put >tcr on the start
+    return($header);
 }
 
 sub PrintFaa
