@@ -1,9 +1,13 @@
 #!/usr/bin/perl
 use strict;
+use lib '..';
+use config;
 
-my $allseq="genbanktcrs.faa";
-my $repseq="tcrseqs.faa";
+my %config = config::ReadConfig("../findpdbabs.conf");
+
+my $allseq="data/genbanktcrs.faa";
 my $tmpseq="tmptcrseqs.faa";
+my $repseq=$config{'tcrseqsfile'};
 
 unlink $repseq;
 

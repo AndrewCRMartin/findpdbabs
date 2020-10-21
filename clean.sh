@@ -1,3 +1,6 @@
-rm sequences.faa*
+. ./findpdbabs.conf
+
+rm ${seqfile}* ${tcrseqsfile}*
 rm *.dbm*
-rm error.log formatdb.log
+rm *.log
+

@@ -3,12 +3,12 @@ package config;
 #
 #   File:       config.pm
 #   
-#   Version:    V1.1
-#   Date:       11.11.16
+#   Version:    V1.2
+#   Date:       21.10.20
 #   Function:   Functions to read a config file
 #   
-#   Copyright:  (c) Dr. Andrew C. R. Martin, UCL, 2015-2016
-#   Author:     Dr. Andrew C. R. Martin
+#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2015-2020
+#   Author:     Prof. Andrew C. R. Martin
 #   Address:    Institute of Structural and Molecular Biology
 #               Division of Biosciences
 #               University College
@@ -50,6 +50,7 @@ package config;
 #   V1.1  11.11.16  Added functions for manipulating files (performing
 #                   substitutions, etc.). Also supports commands within
 #                   assignments (e.g. `pwd`)
+#   V1.2  21.10.20  Fixed handling of ``
 #
 #*************************************************************************
 use utils;
@@ -175,6 +176,7 @@ sub ExportConfig
 #
 #  29.04.15 Original   By: ACRM
 #  11.11.16 Added handling of `` commands
+#  21.10.20 Fixed handling of `` - why did this ever work?!
 #
 sub SetConfig
 {
@@ -215,7 +217,7 @@ sub SetConfig
         my $cmd    = $1;        # Extract the command
         my $result = `$cmd`;    # Run the command
         chomp $result;
-        $value =~ s/`\$\{cmd\}`/$result/; # Substitute the command
+        $value =~ s/`${cmd}`/$result/; # Substitute the command
     }
 
     $$hConfig{$key} = $value;

@@ -1,15 +1,28 @@
 #!/usr/bin/perl
 use strict;
+use Cwd qw(abs_path);
+use FindBin;
+use lib abs_path("$FindBin::Bin/..");
+use config;
 
-my $abdir="$ENV{'HOME'}/git/abymod/DATA/abpdblib/";
-my $allseq="allabs.faa";
-my $repseq="cdhit.faa";
-my $tplDir="../templates";
+
+my $parentDir = abs_path("$FindBin::Bin/..");
+my $configFile = "$parentDir/findpdbabs.conf";
+
+my %config = config::ReadConfig($configFile);
+
+my $abdir  = $config{'abpdbdir'};
+my $allseq = "allabs.faa";
+my $repseq = "cdhit.faa";
+my $tplDir = "${parentDir}/$config{'tplsubdir'}";
 
 unlink $allseq;
 
+print "Getting list of antibody files...";
 my @pdbfiles = GetFileList($abdir, '.pdb');
-print STDERR "Concatenating files";
+print "done\n";
+
+print STDERR "Concatenating files...";
 foreach my $file (@pdbfiles)
 {
     my $pdbcode = $file;
@@ -18,7 +31,6 @@ foreach my $file (@pdbfiles)
     `pdbgetchain L,H ${abdir}/$file | pdb2pir -c -f -l ${pdbcode}_ >>$allseq`;
     print STDERR '.';
 }
-
 print "done\n";
 
 # Grab and compile CD-HIT if not there
@@ -35,6 +47,9 @@ print STDERR "Running CD-HIT...";
 print STDERR "done\n";
 
 SplitFastaFiles($repseq, $tplDir);
+unlink $allseq;
+unlink $repseq;
+unlink "${repseq}.clstr";
 
 
 #*************************************************************************

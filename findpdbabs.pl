@@ -60,7 +60,7 @@ use strict;
 use config;
 
 my $configFile = 'findpdbabs.conf';
-
+my $exeDir     = $FindBin::Bin;
 #*************************************************************************
 my %config = config::ReadConfig($configFile);
 
@@ -73,7 +73,7 @@ $|=1;
 my $faaDir     = $config{'faadir'};
 my $dbmFile    = $config{'dbmfile'};
 my $seqFile    = $config{'seqfile'};
-my $tplDir     = $config{'tpldir'};
+my $tplDir     = "${exeDir}/" . $config{'tplsubdir'};
 my $tcrAbsFile = $config{'tcrabsfile'};
 my %processed  = ();
 
