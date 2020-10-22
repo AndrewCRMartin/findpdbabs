@@ -1,6 +1,6 @@
 . ./findpdbabs.conf
 
-rm ${seqfile}* ${tcrseqsfile}*
+rm ${seqfile}* 
 rm *.dbm*
 rm *.log
 

@@ -126,7 +126,7 @@ sub FindAbs
 sub ReverseSearch
 {
     my($tcrAbsFile, $seqFile, @labels) = @_;
-    my $logFp = 0;
+    my $logFp;
 
     if(defined($::l) && ($::l ne ''))
     {
