@@ -37,8 +37,8 @@ sub RelabelTCRs
     {
         if(open(my $out, '>', $repseq))
         {
-            my $header   = '';
-            my $sequence = '';
+            my $header     = '';
+            my $sequence   = '';
             while(<$in>)
             {
                 chomp;
@@ -49,7 +49,7 @@ sub RelabelTCRs
                         PrintFaa($out, $header, $sequence, 80);
                     }
 
-                    $header = FixHeader($_);
+                    $header   = $_;
                     $sequence = '';
                 }
                 else
@@ -88,8 +88,15 @@ sub PrintFaa
 {
     my($out, $header, $sequence, $minlen) = @_;
 
-    if(length($sequence) >= $minlen)
+    if((length($sequence) >= $minlen) &&
+       (($header =~ /tcr/i) ||
+        ($header =~ /t-cell\s+receptor/i) ||
+        ($header =~ /t-cell-receptor/i) ||
+        ($header =~ /t\s+cell\s+receptor/i)) &&
+       !($header =~ /antibod/i))
     {
+        $header = FixHeader($header);
+        
         print $out "$header\n";
         while(length($sequence))
         {
@@ -97,5 +104,10 @@ sub PrintFaa
             print $out "$this\n";
             $sequence = substr($sequence, 80);
         }
+    }
+    else
+    {
+        printf STDERR "Info: Rejected $header%s\n",
+            (length($sequence < $minlen)?" (length)":"");
     }
 }

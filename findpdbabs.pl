@@ -87,8 +87,8 @@ if($nSeqs > 0)
         exit 1;
     }
     my @abs = FindAbs($tmpDir, $seqFile, $tcrAbsFile);
-#    print "BLAST output is in $tmpDir\n";
-    unlink $tmpDir;
+    print "BLAST output is in $tmpDir\n";
+#    unlink $tmpDir;
 }
 else
 {
