@@ -93,7 +93,9 @@ sub PrintFaa
         ($header =~ /t-cell\s+receptor/i) ||
         ($header =~ /t-cell-receptor/i) ||
         ($header =~ /t\s+cell\s+receptor/i)) &&
-       !($header =~ /antibod/i))
+       !($header =~ /antibod/i) &&
+       !($header =~ /hybrid/i) &&
+       !($header =~ /hypothetical/i))
     {
         $header = FixHeader($header);
         
