@@ -70,6 +70,8 @@ $::minId     = 0.3;
 $::maxEValue = 0.01;
 $|=1;
 
+UsageDie() if(defined($::h));
+
 my $faaDir     = $config{'faadir'};
 my $dbmFile    = $config{'dbmfile'};
 my $seqFile    = $config{'seqfile'};
@@ -124,7 +126,17 @@ sub FindAbs
 sub ReverseSearch
 {
     my($tcrAbsFile, $seqFile, @labels) = @_;
+    my $logFp = 0;
 
+    if(defined($::l) && ($::l ne ''))
+    {
+        if(!open($logFp, '>', $::l))
+        {
+            printf STDERR "Warning: Unable to open log file ($::l) - log going to standard error\n";
+            $logFp = 0;
+        }
+    }
+    
     my @newlabels = ();
     if(BuildBlastDB($tcrAbsFile))
     {
@@ -136,11 +148,20 @@ sub ReverseSearch
             }
             else
             {
-                print STDERR "Rejected TCR: $label\n";
+                if($logFp)
+                {
+                    print $logFp "Rejected TCR: $label\n";
+                }
+                else
+                {
+                    print STDERR "Rejected TCR: $label\n";
+                }
             }
         }
     }
 
+    close($logFp) if($logFp);
+    
     return(@newlabels);
 }
 
@@ -532,3 +553,29 @@ sub GetFileList
     return(@files);
 }
     
+#*************************************************************************
+sub UsageDie
+{
+    print <<__EOF;
+
+findpdbabs.pl V1.0  (c) 2020, UCL, Prof. Andrew C.R. Martin
+
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile]
+       -h  This help
+       -np Specify number of CPU threads for BLAST [$::np]
+       -d  Debug - limits number of sequences used to 1000
+                   -d=2 Also limit number of templates for BLAST
+                   searches to 2
+       -v  Verbose
+       -l  Specify log file for listing sequences rejected as TCRs
+
+findpbdabs.pl uses a pre-calculated set of FASTA sequence files
+derived from PDB files to identify antibody chains. It uses a forward
+BLAST search using known antibody sequences and a reverse search on
+the hits against a set of known antibody and TCR sequuences, rejecting
+those that hit a TCR as the top hit.
+
+__EOF
+
+    exit 0;
+}
