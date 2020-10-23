@@ -8,8 +8,8 @@
 #   Date:       
 #   Function:   
 #   
-#   Copyright:  (c) Dr. Andrew C. R. Martin, UCL, 2011
-#   Author:     Dr. Andrew C. R. Martin
+#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020
+#   Author:     Prof. Andrew C. R. Martin
 #   Address:    Institute of Structural and Molecular Biology
 #               Division of Biosciences
 #               University College
@@ -51,11 +51,6 @@
 # Add the path of the executable to the library path
 use FindBin;
 use lib $FindBin::Bin;
-# Or if we have a bin directory and a lib directory
-#use Cwd qw(abs_path);
-#use FindBin;
-#use lib abs_path("$FindBin::Bin/../lib");
-
 use strict;
 use config;
 
@@ -70,7 +65,9 @@ $::minId     = 0.3;
 $::maxEValue = 0.01;
 $|=1;
 
-UsageDie() if(defined($::h));
+UsageDie() if(defined($::h) || (scalar(@ARGV) != 1));
+
+my $outFile    = shift(@ARGV);
 
 my $faaDir     = $config{'faadir'};
 my $dbmFile    = $config{'dbmfile'};
@@ -79,28 +76,39 @@ my $tplDir     = "${exeDir}/" . $config{'tplsubdir'};
 my $tcrAbsFile = $config{'tcrabsfile'};
 my %processed  = ();
 
-my $nSeqs = BuildSequenceFile($faaDir, $dbmFile, $seqFile);
-if($nSeqs > 0)
+if(open(my $outFp, '>', $outFile))
 {
-    my $tmpDir = RunBlast($tplDir, $seqFile, $nSeqs);
-    if($tmpDir eq '')
+    my $nSeqs = BuildSequenceFile($faaDir, $dbmFile, $seqFile);
+    if($nSeqs > 0)
     {
-        print STDERR "Error: BLAST failed\n";
-        exit 1;
+        my $tmpDir = RunBlast($tplDir, $seqFile, $nSeqs);
+        if($tmpDir eq '')
+        {
+            print STDERR "Error: BLAST failed\n";
+            exit 1;
+        }
+        my @abs = FindAndPrintAbs($outFp, $tmpDir, $seqFile, $tcrAbsFile);
+        if(defined($::d))
+        {
+            print "BLAST output is in $tmpDir\n";
+        }
+        else
+        {
+            unlink $tmpDir;
+        }
     }
-    my @abs = FindAbs($tmpDir, $seqFile, $tcrAbsFile);
-    print "BLAST output is in $tmpDir\n";
-#    unlink $tmpDir;
 }
 else
 {
+    print STDERR "Error: Unable to write to output file ($outFile)\n";
     exit 1;
 }
 
+
 #*************************************************************************
-sub FindAbs
+sub FindAndPrintAbs
 {
-    my($blastDir, $seqFile, $tcrAbsFile)  = @_;
+    my($outFp, $blastDir, $seqFile, $tcrAbsFile)  = @_;
 
     my %lengths    = ();
     my %evalues    = ();
@@ -119,7 +127,7 @@ sub FindAbs
 
     my @labels = keys %lengths;
     @labels = ReverseSearch($tcrAbsFile, $seqFile, @labels);
-    OutputAbs(\@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
+    OutputAbs($outFp, \@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
 }
 
 #*************************************************************************
@@ -180,7 +188,7 @@ sub BlastCheck
         `$exe`;
         unlink($testFile);
         $isAntibody = CheckAntibody($outFile);
-#        unlink($outFile);
+        unlink($outFile) if(!defined($::d));
     }
     print STDERR "done\n";
     
@@ -274,12 +282,12 @@ sub GetSequence
 #*************************************************************************
 sub OutputAbs
 {
-    my($aLabels, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
+    my($outFp, $aLabels, $hLengths, $hEvalues, $hIds, $hPositives, $hChainTypes) = @_;
 
 #    foreach my $label (reverse sort {$$hIds{$a}*1.0 <=> $$hIds{$b}*1.0} @$aLabels)
     foreach my $label (reverse sort {$$hPositives{$a}*1.0 <=> $$hPositives{$b}*1.0} @$aLabels)
     {
-        printf("$label: ChainType: $$hChainTypes{$label} E: %6.2g ID: %.2f Pos: %.2f Len: %3d\n",
+        printf($outFp, "$label: ChainType: $$hChainTypes{$label} E: %6.2g ID: %.2f Pos: %.2f Len: %3d\n",
             $$hEvalues{$label}, $$hIds{$label}, $$hPositives{$label}, $$hLengths{$label});
     }
 }
@@ -560,7 +568,7 @@ sub UsageDie
 
 findpdbabs.pl V1.0  (c) 2020, UCL, Prof. Andrew C.R. Martin
 
-Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile]
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
        -h  This help
        -np Specify number of CPU threads for BLAST [$::np]
        -d  Debug - limits number of sequences used to 1000
@@ -568,6 +576,7 @@ Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile]
                    searches to 2
        -v  Verbose
        -l  Specify log file for listing sequences rejected as TCRs
+           rather than sending them to STDERR
 
 findpbdabs.pl uses a pre-calculated set of FASTA sequence files
 derived from PDB files to identify antibody chains. It uses a forward
