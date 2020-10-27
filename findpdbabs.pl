@@ -76,6 +76,12 @@ my $tplDir     = "${exeDir}/" . $config{'tplsubdir'};
 my $tcrAbsFile = $config{'tcrabsfile'};
 my %processed  = ();
 
+if(defined($::check))
+{
+    CheckOneSequence($::check, $seqFile, $tcrAbsFile);
+    exit 0;
+}
+
 if(open(my $outFp, '>', $outFile))
 {
     my $nSeqs = BuildSequenceFile($faaDir, $dbmFile, $seqFile);
@@ -188,7 +194,17 @@ sub BlastCheck
         `$exe`;
         unlink($testFile);
         $isAntibody = CheckAntibody($outFile);
-        unlink($outFile) if(!defined($::d));
+        if(defined($::d))
+        {
+            if($::d > 1)
+            {
+                print STDERR "Reverse Blast result: $outFile\n";
+            }
+        }
+        else
+        {
+            unlink($outFile);
+        }
     }
     print STDERR "done\n";
     
@@ -562,21 +578,36 @@ sub GetFileList
 }
     
 #*************************************************************************
+sub CheckOneSequence
+{
+    my($label, $seqFile, $tcrAbsFile)  = @_;
+    if((! -f $seqFile) || (! -f $tcrAbsFile))
+    {
+        print STDERR "Error: Sequence file ($seqFile) or TCR/Abs file ($tcrAbsFile) doesn't exist\n";
+        exit 1;
+    }
+    $::d = 2; # turn on debug mode
+    my $isAb = BlastCheck($label, $seqFile, $tcrAbsFile);
+}
+#*************************************************************************
 sub UsageDie
 {
     print <<__EOF;
 
 findpdbabs.pl V1.0  (c) 2020, UCL, Prof. Andrew C.R. Martin
 
-Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
-       -h  This help
-       -np Specify number of CPU threads for BLAST [$::np]
-       -d  Debug - limits number of sequences used to 1000
-                   -d=2 Also limit number of templates for BLAST
-                   searches to 2
-       -v  Verbose
-       -l  Specify log file for listing sequences rejected as TCRs
-           rather than sending them to STDERR
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile]\
+                     [-check=pppp_c] abs.out
+       -h     This help
+       -np    Specify number of CPU threads for BLAST [$::np]
+       -d     Debug - limits number of sequences used to 1000
+                      -d=2 Also limit number of templates for BLAST
+                      searches to 2
+       -v     Verbose
+       -l     Specify log file for listing sequences rejected as TCRs
+              rather than sending them to STDERR
+       -check Specify a pdbcode_chain (pppp_c) - e.g. 1yqv_L - to
+              run just the reverse blast on
 
 findpbdabs.pl uses a pre-calculated set of FASTA sequence files
 derived from PDB files to identify antibody chains. It uses a forward
@@ -588,3 +619,5 @@ __EOF
 
     exit 0;
 }
+
+

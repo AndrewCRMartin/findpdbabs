@@ -88,14 +88,20 @@ sub PrintFaa
 {
     my($out, $header, $sequence, $minlen) = @_;
 
+    # Get just the description part of the header
+    my $description = $header;
+    $description =~ s/.*\|//; 
+    
     if((length($sequence) >= $minlen) &&
-       (($header =~ /tcr/i) ||
-        ($header =~ /t-cell\s+receptor/i) ||
-        ($header =~ /t-cell-receptor/i) ||
-        ($header =~ /t\s+cell\s+receptor/i)) &&
-       !($header =~ /antibod/i) &&
-       !($header =~ /hybrid/i) &&
-       !($header =~ /hypothetical/i))
+       (($description =~ /tcr/i) ||
+        ($description =~ /t-cell\s+receptor/i) ||
+        ($description =~ /t-cell-receptor/i) ||
+        ($description =~ /t\s+cell\s+receptor/i)) &&
+       !($description =~ /antibod/i) &&
+       !($description =~ /hybrid/i) &&
+       !($description =~ /VH/i) &&
+       !($description =~ /VL/i) &&
+       !($description =~ /hypothetical/i))
     {
         $header = FixHeader($header);
         
@@ -110,6 +116,6 @@ sub PrintFaa
     else
     {
         printf STDERR "Info: Rejected $header%s\n",
-            (length($sequence < $minlen)?" (length)":"");
+            (length($sequence) < $minlen)?" (length)":"";
     }
 }
