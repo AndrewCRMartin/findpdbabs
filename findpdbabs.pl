@@ -1,12 +1,12 @@
 #!/usr/bin/perl -s
 #*************************************************************************
 #
-#   Program:    
-#   File:       
+#   Program:    findpdbabs
+#   File:       findpdbabs.pl
 #   
-#   Version:    
-#   Date:       
-#   Function:   
+#   Version:    V1.0
+#   Date:       27.10.20
+#   Function:   Find PDB files containing antibodies
 #   
 #   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020
 #   Author:     Prof. Andrew C. R. Martin
@@ -65,7 +65,9 @@ $::minId     = 0.3;
 $::maxEValue = 1e-20;
 $|=1;
 
-UsageDie() if(defined($::h) || (scalar(@ARGV) != 1));
+UsageDie() if(defined($::h) ||
+              (!defined($::check) && (scalar(@ARGV) != 1)));
+$|=1;
 
 my $outFile    = shift(@ARGV);
 
@@ -133,8 +135,10 @@ sub FindAndPrintAbs
 
     my @labels = keys %lengths;
     @labels = ReverseSearch($tcrAbsFile, $seqFile, @labels);
-    OutputAbs($outFp, \@labels, \%lengths, \%evalues, \%ids, \%positives, \%chainTypes);
+    OutputAbs($outFp, \@labels, \%lengths, \%evalues, \%ids,
+              \%positives, \%chainTypes);
 }
+
 
 #*************************************************************************
 sub ReverseSearch
@@ -159,17 +163,11 @@ sub ReverseSearch
             if(BlastCheck($label, $seqFile, $tcrAbsFile))
             {
                 push @newlabels, $label;
+                PrintLog($logFp, "Retained Ab: $label");
             }
             else
             {
-                if($logFp)
-                {
-                    print $logFp "Rejected TCR: $label\n";
-                }
-                else
-                {
-                    print STDERR "Rejected TCR: $label\n";
-                }
+                PrintLog($logFp, "Rejected TCR: $label");
             }
         }
     }
@@ -178,6 +176,23 @@ sub ReverseSearch
     
     return(@newlabels);
 }
+
+
+#*************************************************************************
+sub PrintLog
+{
+    my($logFp, $msg) = @_;
+    if($logFp)
+    {
+        print $logFp "$msg\n";
+    }
+    else
+    {
+        print STDERR "$msg\n";
+    }
+    
+}
+
 
 #*************************************************************************
 sub BlastCheck
@@ -198,7 +213,7 @@ sub BlastCheck
         {
             if($::d > 1)
             {
-                print STDERR "Reverse Blast result: $outFile\n";
+                print STDERR "\n   Result: $outFile\n";
             }
         }
         else
@@ -210,6 +225,7 @@ sub BlastCheck
     
     return($isAntibody);
 }
+
 
 #*************************************************************************
 sub CheckAntibody
@@ -248,6 +264,7 @@ sub CheckAntibody
     }
     return($retval);
 }
+
 
 #*************************************************************************
 sub GetSequence
@@ -295,6 +312,7 @@ sub GetSequence
     return($tmpFile);
 }
 
+
 #*************************************************************************
 sub OutputAbs
 {
@@ -307,6 +325,7 @@ sub OutputAbs
             $$hEvalues{$label}, $$hIds{$label}, $$hPositives{$label}, $$hLengths{$label});
     }
 }
+
 
 #*************************************************************************
 sub ParseBlast
@@ -362,6 +381,7 @@ sub ParseBlast
         print STDERR "Error: Unable to read $blastFile\n";
     }
 }
+
 
 #*************************************************************************
 sub UpdateStats
@@ -433,6 +453,7 @@ sub RunBlast
     return(0);
 }
 
+
 #*************************************************************************
 sub BuildBlastDB
 {
@@ -450,6 +471,7 @@ sub BuildBlastDB
     print STDERR "failed\n" if(defined($::v));
     return(0);
 }
+
 
 #*************************************************************************
 sub BuildSequenceFile
@@ -525,7 +547,6 @@ sub BuildSequenceFile
 }
 
 
-
 #*************************************************************************
 sub AddToSeqFile
 {
@@ -564,6 +585,7 @@ sub AddToSeqFile
     return(0);
 }
 
+
 #*************************************************************************
 sub GetFileList
 {
@@ -576,7 +598,8 @@ sub GetFileList
     }
     return(@files);
 }
-    
+
+
 #*************************************************************************
 sub CheckOneSequence
 {
@@ -589,6 +612,8 @@ sub CheckOneSequence
     $::d = 2; # turn on debug mode
     my $isAb = BlastCheck($label, $seqFile, $tcrAbsFile);
 }
+
+
 #*************************************************************************
 sub UsageDie
 {
@@ -596,8 +621,8 @@ sub UsageDie
 
 findpdbabs.pl V1.0  (c) 2020, UCL, Prof. Andrew C.R. Martin
 
-Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile]\
-                     [-check=pppp_c] abs.out
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
+-or-   findpdbabs.pl -check=pppp_c
        -h     This help
        -np    Specify number of CPU threads for BLAST [$::np]
        -d     Debug - limits number of sequences used to 1000
@@ -619,5 +644,3 @@ __EOF
 
     exit 0;
 }
-
-

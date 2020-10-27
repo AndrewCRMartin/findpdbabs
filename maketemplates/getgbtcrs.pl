@@ -101,6 +101,7 @@ sub PrintFaa
        !($description =~ /hybrid/i) &&
        !($description =~ /VH/i) &&
        !($description =~ /VL/i) &&
+       !($description =~ /AEA36685\.1/i) &&   # Weird one!
        !($description =~ /hypothetical/i))
     {
         $header = FixHeader($header);
