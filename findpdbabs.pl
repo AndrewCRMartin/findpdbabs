@@ -133,7 +133,14 @@ sub FindAndPrintAbs
         print STDERR "done\n";
     }
 
+        
+    
     my @labels = keys %lengths;
+
+    printf STDERR "\n\nBLAST searches found %d possible antibodies\n\n",
+        scalar(@labels);
+
+
     @labels = ReverseSearch($tcrAbsFile, $seqFile, @labels);
     OutputAbs($outFp, \@labels, \%lengths, \%evalues, \%ids,
               \%positives, \%chainTypes);
@@ -145,7 +152,9 @@ sub ReverseSearch
 {
     my($tcrAbsFile, $seqFile, @labels) = @_;
     my $logFp;
-
+    my $nHits  = scalar(@labels);
+    my $hitNum = 1;
+    
     if(defined($::l) && ($::l ne ''))
     {
         if(!open($logFp, '>', $::l))
@@ -160,6 +169,7 @@ sub ReverseSearch
     {
         foreach my $label (@labels)
         {
+            print STDERR "($hitNum/$nHits): ";
             if(BlastCheck($label, $seqFile, $tcrAbsFile))
             {
                 push @newlabels, $label;
@@ -169,6 +179,7 @@ sub ReverseSearch
             {
                 PrintLog($logFp, "Rejected TCR: $label");
             }
+            $hitNum++;
         }
     }
 
@@ -182,15 +193,17 @@ sub ReverseSearch
 sub PrintLog
 {
     my($logFp, $msg) = @_;
-    if($logFp)
+    if(defined($::v) || defined($::l))
     {
-        print $logFp "$msg\n";
+        if($logFp)
+        {
+            print $logFp "$msg\n";
+        }
+        else
+        {
+            print STDERR "$msg\n";
+        }
     }
-    else
-    {
-        print STDERR "$msg\n";
-    }
-    
 }
 
 
