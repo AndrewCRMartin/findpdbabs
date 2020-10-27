@@ -60,9 +60,9 @@ my $exeDir     = $FindBin::Bin;
 my %config = config::ReadConfig($configFile);
 
 $::np        = 2 if(!defined($::np));
-$::minLen    = 80;
+$::minLen    = 100;
 $::minId     = 0.3;
-$::maxEValue = 0.01;
+$::maxEValue = 1e-20;
 $|=1;
 
 UsageDie() if(defined($::h) || (scalar(@ARGV) != 1));
