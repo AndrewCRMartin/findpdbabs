@@ -25,12 +25,6 @@ Edit the file `findpdbabs.conf` to specify:
 - `dataroot` - root directory of where you wish to store Blast database
   file, database files etc.
 
-Now run the `configure.pl` script:
-
-```
-   ./configure.pl`
-```
-
 Running the software
 --------------------
 

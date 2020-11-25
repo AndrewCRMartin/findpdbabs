@@ -508,6 +508,7 @@ sub BuildSequenceFile
     {
         if(open(my $seqFp, '>', $seqFile))
         {
+            my $needsCR = 1;
             foreach my $file (@fastaFiles)
             {
                 if(!defined($processed{$file}))
@@ -519,21 +520,25 @@ sub BuildSequenceFile
                         $processed{$file} = 1;
                         if(defined($::v))
                         {
-                            print STDERR "Added $file\n"
+                            print STDERR "Added $file\n";
+                            $needsCR = 0;
                         }
                         else
                         {
                             print STDERR '.';
+                            $needsCR = 1;
                         }
                     }
                     else
                     {
-                        print STDERR "\nWarning: No sequences added from $file\n";
+                        print STDERR "\n" if($needsCR);
+                        print STDERR "Warning: No sequences added from $file\n";
+                        $needsCR = 0;
                     }
                 }
             }
             close($seqFp);
-            print STDERR "done\n";
+            print STDERR "...done\n";
             
             if($nSeqs)
             {
@@ -541,7 +546,7 @@ sub BuildSequenceFile
             }
             else
             {
-                print STDERR "No new sequence files\n";
+                print STDERR "\nNo new sequence files\n";
             }
         }
         else
