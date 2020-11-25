@@ -1,5 +1,5 @@
-pdbdir=/serv/data/pdb
-faadir=/serv/data/pdbseq
+pdbdir=[%pdbdir%]
+faadir=[%faadir%]
 
 # Get rid of all built-in SUFFIX rules
 .SUFFIXES : 

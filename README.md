@@ -6,7 +6,7 @@ A new program to find PDB files containing antibodies
 Prerequisites
 -------------
 
-- A local mirror of the PDB
+- A local mirror of the PDB (you can use our `ftpmirror` script for this)
 - BiopTools installed and available in the path
 - Legacy blast installed and in the path
 - A directory containing known antibody structure Fvs (e.g. from AbDb)
@@ -16,30 +16,53 @@ Configuration
 
 Edit the file `findpdbabs.conf` to specify:
 
-- `faadir` - the location of the Fasta equivalent of the PDB
-- `abpdbdir` - the location of a directory containing confirmed known PDB files of antibodies
+- `pdbdir` - the location of your PDB mirror
+- `faadir` - the location of the Fasta equivalent of the PDB (the data
+  will be created during the processing - you do not need to have
+  pre-created it)
+- `abpdbdir` - the location of a directory containing confirmed known
+  PDB files of antibodies
+- `dataroot` - root directory of where you wish to store Blast database
+  file, database files etc.
 
-Edit the file `Makefile.pdbseq` to specify:
+Now run the `configure.pl` script:
 
-- `faadir` - the location of the Fasta equivalent of the PDB (the same as above)
-- `pdbdir` - the location of the local PDB mirror
+```
+   ./configure.pl`
+```
 
 Running the software
 --------------------
 
-This requires various steps:
+### First run only
 
-1. Prepare the data files for findpdbabs to use. Simply type: `builddata.sh`. This obtains non-redundant FASTA files of the known antibodies, non-redundant TCR sequences and a file containing them both.
+**If you are running the software for the first time**, you need to
+prepare the data files for `findpdbabs` to use. Simply ensure you are
+ine the `findpdbabs` directory and type:
 
-2. First we need a sequence database based on PDB files. This is done
-by the command: `make -f Makefile.pdbseq` which will simply create
-the sequence files for any PDB files that don't have them
+```
+   ./builddata.sh
+```
 
-3. Now run the program to identify new PDB sequence files and identify
-them as containing an antibody: `./findpdbabs.pl`
+This obtains non-redundant FASTA files of the known antibodies,
+non-redundant TCR sequences and a file containing them both.
 
-** For future runs, you just repeat steps 2 and 3. This will simply
-   identify new antibody sequences **
+### Subsequent runs
+
+**Once you have done that (and for subsequent runs**, simply type:
+
+```
+   ./update.sh
+```
+
+This first creates a sequence database based on PDB files. It
+creates a sequence file in `faadir` for each PDB file not already processed.
+
+It then runs runs the program (`./findpdbabs.pl`) to identify new PDB
+that contain an antibody.
+
+Algorithm
+---------
 
 The algorithm is to identify PDB sequences that haven't previously
 been examined (a DBM file is used to keep track of this) and scan each
