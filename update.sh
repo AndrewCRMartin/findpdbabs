@@ -1,14 +1,10 @@
 #!/bin/bash
 
-if [ ! -f Makefile.pdbseq ]; then
-    ./configure.pl
-fi
-
 abfile=abs.out
 
 thedate=`date +%Y-%m-%d`
 echo "*** Extracting sequences for new PDB files..."
-make -f Makefile.pdbseq
+./getpdbseqs.pl
 
 echo ""
 echo "*** Identifying antibodies..."

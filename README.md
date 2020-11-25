@@ -49,8 +49,9 @@ non-redundant TCR sequences and a file containing them both.
    ./update.sh
 ```
 
-This first creates a sequence database based on PDB files. It
-creates a sequence file in `faadir` for each PDB file not already processed.
+This first creates a sequence database based on PDB files. It uses
+`getpdbseqs.pl` to creates a sequence file in `faadir` for each PDB
+file not already processed.
 
 It then runs runs the program (`./findpdbabs.pl`) to identify new PDB
 that contain an antibody.
