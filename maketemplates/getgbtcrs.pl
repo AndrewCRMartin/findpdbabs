@@ -1,11 +1,16 @@
 #!/usr/bin/perl
 use strict;
-use lib '..';
+use Cwd qw(abs_path);
+use FindBin;
+use lib abs_path("$FindBin::Bin/..");
 use config;
 
-my %config = config::ReadConfig("../findpdbabs.conf");
+my $parentDir  = abs_path("$FindBin::Bin/..");
+my $configFile = "$parentDir/findpdbabs.conf";
 
-my $allseq="data/genbanktcrs.faa";
+my %config = config::ReadConfig($configFile);
+
+my $allseq="$FindBin::Bin/data/genbanktcrs.faa";
 my $tmpseq="tmptcrseqs.faa";
 my $repseq=$config{'tcrseqsfile'};
 
@@ -25,6 +30,8 @@ RelabelTCRs($tmpseq, $allseq);
 print STDERR "Running CD-HIT...";
 `cdhit/cd-hit -T 0 -c 0.6 -n 3 -i $tmpseq -o $repseq`;
 print STDERR "done\n";
+
+print STDERR "Non-redundant TCR sequences are in $repseq\n";
 
 unlink $tmpseq;
 unlink "${repseq}.clstr";

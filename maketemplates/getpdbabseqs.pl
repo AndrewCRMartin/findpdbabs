@@ -14,15 +14,16 @@ my %config = config::ReadConfig($configFile);
 my $abdir  = $config{'abpdbdir'};
 my $allseq = "allabs.faa";
 my $repseq = "cdhit.faa";
-my $tplDir = "${parentDir}/$config{'tplsubdir'}";
+#my $tplDir = "${parentDir}/$config{'tplsubdir'}";
+my $tplDir = $config{'abtpldir'};
 
 unlink $allseq;
 
-print "Getting list of antibody files...";
+print "Getting list of antibody PDB files...";
 my @pdbfiles = GetFileList($abdir, '.pdb');
 print "done\n";
 
-print STDERR "Concatenating files...";
+print STDERR "Extracting sequence data and concatenating files...";
 foreach my $file (@pdbfiles)
 {
     my $pdbcode = $file;
@@ -47,6 +48,7 @@ print STDERR "Running CD-HIT...";
 print STDERR "done\n";
 
 SplitFastaFiles($repseq, $tplDir);
+print STDERR "Antibody template sequences are in $tplDir\n";
 unlink $allseq;
 unlink $repseq;
 unlink "${repseq}.clstr";

@@ -74,7 +74,8 @@ my $outFile    = shift(@ARGV);
 my $faaDir     = $config{'faadir'};
 my $dbmFile    = $config{'dbmfile'};
 my $seqFile    = $config{'seqfile'};
-my $tplDir     = "${exeDir}/" . $config{'tplsubdir'};
+#my $tplDir     = "${exeDir}/" . $config{'tplsubdir'};
+my $tplDir     = $config{'abtpldir'};
 my $tcrAbsFile = $config{'tcrabsfile'};
 my %processed  = ();
 
