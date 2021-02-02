@@ -32,7 +32,7 @@ Running the software
 
 **If you are running the software for the first time**, you need to
 prepare the data files for `findpdbabs` to use. Simply ensure you are
-ine the `findpdbabs` directory and type:
+ine the `dataprep/findpdbabs` directory and type:
 
 ```
    ./builddata.sh

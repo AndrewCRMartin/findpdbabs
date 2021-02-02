@@ -2,10 +2,10 @@
 use strict;
 use Cwd qw(abs_path);
 use FindBin;
-use lib abs_path("$FindBin::Bin/..");
+use lib abs_path("$FindBin::Bin/../..");
 use config;
 
-my $parentDir  = abs_path("$FindBin::Bin/..");
+my $parentDir  = abs_path("$FindBin::Bin/../..");
 my $configFile = "$parentDir/findpdbabs.conf";
 
 my %config = config::ReadConfig($configFile);

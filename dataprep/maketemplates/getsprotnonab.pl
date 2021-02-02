@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 use strict;
-use lib '..';
+use lib '../..';
 use config;
 
-my %config = config::ReadConfig("../findpdbabs.conf");
+my %config = config::ReadConfig("../../findpdbabs.conf");
 
 my $allseq=shift (@ARGV);
 my $tmpseq="tmptcrseqs.faa";

@@ -1,13 +1,13 @@
 #!/bin/bash
-. ./findpdbabs.conf
+. ../findpdbabs.conf
 
-if [ ! -f ./findpdbabs.conf ]; then
+if [ ! -f ../findpdbabs.conf ]; then
     echo "You must create a configuration file: findpdbabs.conf"
     exit 1
 fi
 
 if [ $0 != "./builddata.sh" ]; then
-    echo "Script must be run in the source directory as ./builddata.sh"
+    echo "Script must be run in the dataprep directory as ./builddata.sh"
     exit 1
 fi
 
