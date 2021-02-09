@@ -79,6 +79,11 @@ my $tplDir     = $config{'abtpldir'};
 my $tcrAbsFile = $config{'tcrabsfile'};
 my %processed  = ();
 
+MakeDir($config{'blastdir'}, "Blast database directory");
+MakeDir($config{'dbmdir'},   "DBM (sequence) database directory");
+
+InstallReferenceFiles($config{'tcrabsreffile'}, $config{'tcrabsfile'});
+
 if(defined($::check))
 {
     CheckOneSequence($::check, $seqFile, $tcrAbsFile);
@@ -166,7 +171,7 @@ sub ReverseSearch
     }
     
     my @newlabels = ();
-    if(BuildBlastDB($tcrAbsFile))
+    if(BuildBlastDB($tcrAbsFile, 0))
     {
         foreach my $label (@labels)
         {
@@ -218,7 +223,7 @@ sub BlastCheck
     my $testFile = GetSequence($seqFile, $label);
     if($testFile ne '')
     {
-        my $outFile = $testFile . $label . ".out";
+        my $outFile = $testFile . '_' . $label . ".out";
         my $exe = "blastall -F F -e $::maxEValue -z 100000 -P 1 -p blastp -a $::np -d $tcrAbsFile -i $testFile -o $outFile";
         `$exe`;
         unlink($testFile);
@@ -440,9 +445,9 @@ sub RunBlast
     my($tplDir, $seqFile, $nSeqs) = @_;
 
     my $tmpDir = "/var/tmp/fpa_$$" . "_" . time();
-    `mkdir $tmpDir` if(! -d $tmpDir);
+    MakeDir($tmpDir, '');
     
-    if(BuildBlastDB($seqFile))
+    if(BuildBlastDB($seqFile, 1))
     {
         my @tplFiles = GetFileList($tplDir, '.faa');
         if(defined($::d) && ($::d > 1))
@@ -462,8 +467,10 @@ sub RunBlast
             return($tmpDir);
         }
         print STDERR "No template files found\n";
+        `rm -rf $tmpDir`;
         return('');
     }
+    `rm -rf $tmpDir`;
     return(0);
 }
 
@@ -471,19 +478,23 @@ sub RunBlast
 #*************************************************************************
 sub BuildBlastDB
 {
-    my ($seqFile) = @_;
+    my ($seqFile, $force) = @_;
     print STDERR "Building BLAST database..." if(defined($::v));
 
-    my $exe = "formatdb -i $seqFile -p T -o F";
-    `$exe`;
-
-    if( -f "${seqFile}.pin" )
+    if($force || (! -f "${seqFile}.pin" ))
     {
-        print STDERR "done\n" if(defined($::v));
-        return(1);
+        my $exe = "formatdb -i $seqFile -p T -o F";
+        `$exe`;
+
+        if( -f "${seqFile}.pin" )
+        {
+            print STDERR "done\n" if(defined($::v));
+            return(1);
+        }
+        print STDERR "failed\n" if(defined($::v));
+        return(0);
     }
-    print STDERR "failed\n" if(defined($::v));
-    return(0);
+    return(1);
 }
 
 
@@ -630,6 +641,44 @@ sub CheckOneSequence
     }
     $::d = 2; # turn on debug mode
     my $isAb = BlastCheck($label, $seqFile, $tcrAbsFile);
+}
+
+#*************************************************************************
+sub MakeDir
+{
+    my($dirName, $msg) = @_;
+    if(! -d $dirName)
+    {
+        `mkdir -p $dirName`;
+        if(! -d $dirName)
+        {
+            printf STDERR "Unable to create directory: $dirName\n";
+            exit 1;
+        }
+        printf STDERR "Created $msg ($dirName)\n" if($msg ne '');
+    }
+}
+
+
+#*************************************************************************
+sub InstallReferenceFiles
+{
+    my($tcrAbsRefFile, $tcrAbsFile) = @_;
+    if(! -f $tcrAbsFile)
+    {
+        if(! -f $tcrAbsRefFile)
+        {
+            printf STDERR "TCR/Abs Reference file doesn't exist\n";
+            printf STDERR "You need to run dataprep/builddata.sh\n";
+            exit 1;
+        }
+        `cp $tcrAbsRefFile $tcrAbsFile`;
+        if(! -f $tcrAbsFile)
+        {
+            printf STDERR "No permission or space to write $tcrAbsFile\n";
+            exit 1;
+        }
+    }
 }
 
 

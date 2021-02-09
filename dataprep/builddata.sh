@@ -33,6 +33,6 @@ makedir $dbmdir   "DBM directory"
 
 (cd maketemplates; ./getpdbabseqs.pl)
 (cd maketemplates; ./getgbtcrs.pl)
-cat $tcrseqsfile $abtpldir/*.faa > $tcrabsfile
-\rm -f $tcrseqsfileq
+cat $tcrseqsfile $abtpldir/*.faa > $tcrabsreffile
+#\rm -f $tcrseqsfileq
 
