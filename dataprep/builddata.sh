@@ -1,5 +1,4 @@
 #!/bin/bash
-. ../findpdbabs.conf
 
 if [ ! -f ../findpdbabs.conf ]; then
     echo "You must create a configuration file: findpdbabs.conf"
@@ -10,6 +9,8 @@ if [ $0 != "./builddata.sh" ]; then
     echo "Script must be run in the dataprep directory as ./builddata.sh"
     exit 1
 fi
+
+. ../findpdbabs.conf
 
 function makedir
 {
