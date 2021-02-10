@@ -4,11 +4,11 @@
 #   Program:    findpdbabs
 #   File:       findpdbabs.pl
 #   
-#   Version:    V1.0
-#   Date:       27.10.20
+#   Version:    V1.1
+#   Date:       10.02.21
 #   Function:   Find PDB files containing antibodies
 #   
-#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020
+#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020-21
 #   Author:     Prof. Andrew C. R. Martin
 #   Address:    Institute of Structural and Molecular Biology
 #               Division of Biosciences
@@ -46,6 +46,8 @@
 #
 #   Revision History:
 #   =================
+#   V1.0  27.10.20   Original   By: ACRM
+#   V1.1  10.02.21   Refactored to separate data preparation
 #
 #*************************************************************************
 # Add the path of the executable to the library path
@@ -687,7 +689,7 @@ sub UsageDie
 {
     print <<__EOF;
 
-findpdbabs.pl V1.0  (c) 2020, UCL, Prof. Andrew C.R. Martin
+findpdbabs.pl V1.1  (c) 2020-21, UCL, Prof. Andrew C.R. Martin
 
 Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
 -or-   findpdbabs.pl -check=pppp_c
