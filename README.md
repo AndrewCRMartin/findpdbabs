@@ -27,18 +27,35 @@ Edit the file `findpdbabs.conf` to specify:
 Running the software
 --------------------
 
-### First run only
+Simply type:
 
-**If you are running the software for the first time**, you need to
-prepare the data files for `findpdbabs` to use.
+```
+   ./update.sh
+```
 
-You will need
+This first creates a sequence database based on PDB files. It uses
+`getpdbseqs.pl` to create a sequence file in `faadir` for each PDB
+file not already processed.
+
+It then runs runs the program (`./findpdbabs.pl`) to identify new PDB
+that contain an antibody.
+
+
+Preparing the data
+------------------
+
+Reference data are supplied with the program, so this shouldn't need
+to be repeated unless you are rebuilding the dataset.
+
+To prepare the data files for `findpdbabs` to use.
+
+You will need:
 
 - A directory containing known antibody structure Fvs (e.g. from AbDb)
 
+Ensure that `abpdbdir` in the config file points to this directory.
 
-Simply ensure you are
-ine the `dataprep/findpdbabs` directory and type:
+Enter the `dataprep/` directory and type:
 
 ```
    ./builddata.sh
@@ -47,20 +64,7 @@ ine the `dataprep/findpdbabs` directory and type:
 This obtains non-redundant FASTA files of the known antibodies,
 non-redundant TCR sequences and a file containing them both.
 
-### Subsequent runs
 
-**Once you have done that (and for subsequent runs**, simply type:
-
-```
-   ./update.sh
-```
-
-This first creates a sequence database based on PDB files. It uses
-`getpdbseqs.pl` to creates a sequence file in `faadir` for each PDB
-file not already processed.
-
-It then runs runs the program (`./findpdbabs.pl`) to identify new PDB
-that contain an antibody.
 
 Algorithm
 ---------
