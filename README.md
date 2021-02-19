@@ -9,7 +9,6 @@ Prerequisites
 - A local mirror of the PDB (you can use our `ftpmirror` script for this)
 - BiopTools installed and available in the path
 - Legacy blast installed and in the path
-- A directory containing known antibody structure Fvs (e.g. from AbDb)
 
 Configuration
 -------------
@@ -31,7 +30,14 @@ Running the software
 ### First run only
 
 **If you are running the software for the first time**, you need to
-prepare the data files for `findpdbabs` to use. Simply ensure you are
+prepare the data files for `findpdbabs` to use.
+
+You will need
+
+- A directory containing known antibody structure Fvs (e.g. from AbDb)
+
+
+Simply ensure you are
 ine the `dataprep/findpdbabs` directory and type:
 
 ```

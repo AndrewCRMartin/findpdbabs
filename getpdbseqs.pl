@@ -4,11 +4,11 @@
 #   Program:    findpdbabs
 #   File:       getpdbseqs.pl
 #   
-#   Version:    V1.0
-#   Date:       25.11.20
+#   Version:    V1.0.1
+#   Date:       19.02.21
 #   Function:   Update sequence files for new PDB files
 #   
-#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020
+#   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020-21
 #   Author:     Prof. Andrew C. R. Martin
 #   Address:    Institute of Structural and Molecular Biology
 #               Division of Biosciences
@@ -36,6 +36,8 @@
 #
 #   Description:
 #   ============
+#   V1.0    25.11.20 Original   By: ACRM
+#   V1.0.1  19.02.21 Allows .pdb as well as .ent
 #
 #*************************************************************************
 #
@@ -46,6 +48,8 @@
 #
 #   Revision History:
 #   =================
+#
+#   V1.0.1  Replaces .pdb extension as well as .ent
 #
 #*************************************************************************
 # Add the path of the executable to the library path
@@ -68,7 +72,8 @@ if(opendir(my $dh, $config{'pdbdir'}))
     foreach my $pdbfile (@pdbfiles)
     {
         my $seqfile = $pdbfile;
-        $seqfile =~ s/\.ent/.faa/;
+        $seqfile =~ s/\.ent$/.faa/;
+        $seqfile =~ s/\.pdb$/.faa/;
         $seqfile = $config{'faadir'} . "/$seqfile";
         if(! -f $seqfile)
         {
