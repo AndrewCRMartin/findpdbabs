@@ -4,8 +4,8 @@
 #   Program:    findpdbabs
 #   File:       findpdbabs.pl
 #   
-#   Version:    V1.1
-#   Date:       10.02.21
+#   Version:    V1.2
+#   Date:       18.06.21
 #   Function:   Find PDB files containing antibodies
 #   
 #   Copyright:  (c) Prof. Andrew C. R. Martin, UCL, 2020-21
@@ -48,6 +48,7 @@
 #   =================
 #   V1.0  27.10.20   Original   By: ACRM
 #   V1.1  10.02.21   Refactored to separate data preparation
+#   V1.2  18.06.21   Added -force option
 #
 #*************************************************************************
 # Add the path of the executable to the library path
@@ -86,8 +87,20 @@ MakeDir($config{'dbmdir'},   "DBM (sequence) database directory");
 
 InstallReferenceFiles($config{'tcrabsreffile'}, $config{'tcrabsfile'});
 
+if(defined($::force))
+{
+    if(($::force eq '1') || (!($::force =~ /^\d...$/)))
+    {
+        UsageDie();
+    }
+
+    DeletePDBSequence($::force);
+}
+
 if(defined($::check))
 {
+    UsageDie() if($::check eq '1');
+               
     CheckOneSequence($::check, $seqFile, $tcrAbsFile);
     exit 0;
 }
@@ -501,6 +514,27 @@ sub BuildBlastDB
 
 
 #*************************************************************************
+sub DeletePDBSequence
+{
+    my($pdbid) = @_;
+    dbmopen %processed, $dbmFile, 0666 || die "Can't dbopen $dbmFile";
+    my $filename = "pdb${pdbid}.faa";
+    if(defined($processed{$filename}))
+    {
+        print STDERR "Removing $filename from the list of processed PDBs\n";
+        delete($processed{$filename});
+    }
+    else
+    {
+        print STDERR "$filename is not in the list of processed PDBs\n";
+        print STDERR "Aborting run\n";
+        dbmclose %processed;
+        exit 1;
+    }
+    
+    dbmclose %processed;
+}
+#*************************************************************************
 sub BuildSequenceFile
 {
     my($faaDir, $dbmFile, $seqFile) = @_;
@@ -687,11 +721,11 @@ sub InstallReferenceFiles
 #*************************************************************************
 sub UsageDie
 {
-    print <<__EOF;
+    print STDERR <<__EOF;
 
-findpdbabs.pl V1.1  (c) 2020-21, UCL, Prof. Andrew C.R. Martin
+findpdbabs.pl V1.2  (c) 2020-21, UCL, Prof. Andrew C.R. Martin
 
-Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile][-force=pppp] abs.out
 -or-   findpdbabs.pl -check=pppp_c
        -h     This help
        -np    Specify number of CPU threads for BLAST [$::np]
@@ -701,6 +735,8 @@ Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile] abs.out
        -v     Verbose
        -l     Specify log file for listing sequences rejected as TCRs
               rather than sending them to STDERR
+       -force Removes a particular PDB code from the database or 
+              processed PDB files to force it to be reprocessed
        -check Specify a pdbcode_chain (pppp_c) - e.g. 1yqv_L - to
               run just the reverse blast on
 
