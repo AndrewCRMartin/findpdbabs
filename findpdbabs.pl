@@ -48,7 +48,7 @@
 #   =================
 #   V1.0  27.10.20   Original   By: ACRM
 #   V1.1  10.02.21   Refactored to separate data preparation
-#   V1.2  18.06.21   Added -force option
+#   V1.2  18.06.21   Added -force and -lax options
 #
 #*************************************************************************
 # Add the path of the executable to the library path
@@ -172,11 +172,11 @@ sub FindAndPrintAbs
 sub ReverseSearch
 {
     my($tcrAbsFile, $seqFile, @labels) = @_;
-    my $logFp;
+    my $logFp  = 0;
     my $nHits  = scalar(@labels);
     my $hitNum = 1;
     
-    if(defined($::l) && ($::l ne ''))
+    if(defined($::l) && ($::l ne '1'))
     {
         if(!open($logFp, '>', $::l))
         {
@@ -277,7 +277,28 @@ sub CheckAntibody
                 $_ = <$fp>;  # Get first hit
                 if(/^tcr/)
                 {
-                    $retval = 0; # It's a TCR
+                    if(defined($::lax))
+                    {
+                        # It APPEARS to be a TCR, but we will assume it's
+                        # an antibody
+                        $retval = 1;
+                        
+                        # Get the next 9 hits - if at least one of them is
+                        # also a TCR then we descide this is definitely a TCR
+                        for(my $i=0; $i<9; $i++)
+                        {
+                            $_ = <$fp>;  # Get first hit
+                            if(/^tcr/)
+                            {
+                                $retval = 0; # We confirm it's a TCR
+                                last;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $retval = 0; # It's a TCR
+                    }
                 }
                 elsif(/^[0-9]/)
                 {
@@ -725,7 +746,8 @@ sub UsageDie
 
 findpdbabs.pl V1.2  (c) 2020-21, UCL, Prof. Andrew C.R. Martin
 
-Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile][-force=pppp] abs.out
+Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile][-force=pppp]
+                     [-lax] abs.out
 -or-   findpdbabs.pl -check=pppp_c
        -h     This help
        -np    Specify number of CPU threads for BLAST [$::np]
@@ -739,7 +761,10 @@ Usage: findpdbabs.pl [-h][-np=n][-d[=n]][-v][-l=logfile][-force=pppp] abs.out
               processed PDB files to force it to be reprocessed
        -check Specify a pdbcode_chain (pppp_c) - e.g. 1yqv_L - to
               run just the reverse blast on
-
+       -lax   Require that the top hit in the reverse BLAST is a TCR
+              and there is at least one other TCR in the top 10 hits
+              to categorize a chain as a TCR rather than an Ab
+    
 findpbdabs.pl uses a pre-calculated set of FASTA sequence files
 derived from PDB files to identify antibody chains. It uses a forward
 BLAST search using known antibody sequences and a reverse search on
