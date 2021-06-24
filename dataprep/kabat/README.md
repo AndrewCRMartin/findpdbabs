@@ -1,3 +1,25 @@
+### Preparation of TCR data
+
+This is a manual process for creating a clear set of V-domains from TCRs.
+
+Initially TCR V-domains are obtained from Kabat (2000). Each chain
+type group is multiply aligned and then filtered to remove those
+sequences with significant missing residues from either end. The sets
+are then combined into one FASTA file.
+
+We now take the set of TCRs obtained from Genbank and do a FASTA
+search of these against our cleaned set from Kabat. They are
+categorized as one of the 4 chain types or rejected and added to the
+appropriate Kabat sets.
+
+Each set is again multiply aligned and trimmed to the length of the
+Kabat sequences. They are then filtered, as before, to remove
+sequences with missing residues at the N or C terminus.
+
+Finally the 4 sets are again concatenated into a single file.
+
+-----------------------------------------------------------------------
+
 # Obtain Kabat sequence files containing TCRs
 kabatDir="/data/kabat/fixlen/unpacked/ALL"
 (cd $kabatDir; grep 'TCR BETA CHAIN VARIABLE REGION'  * | grep -v PSEUDO) > beta.txt
